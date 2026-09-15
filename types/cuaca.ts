@@ -5,6 +5,12 @@ export interface DataCuaca {
   kelembapan: number;
   catatan?: string;
 }
+export interface LaporanUdara {
+  kota: string;
+  indeksAQI: number;
+  tingkat: "BAIK" | "SEDANG" | "TIDAK_SEHAT" | "BERBAHAYA";
+  diperbaruiPada?: string;
+}
 export type TingkatAQI = "BAIK" | "SEDANG" | "TIDAK_SEHAT" | "BERBAHAYA";
 export interface WeatherCardProps {
   kota: string;
