@@ -11,20 +11,20 @@ export default function WeatherCard({
   const warnaAQI = tingkatAQI === "BAIK" ? "green" : "orange";
   return (
     <View
-      style={{
-        padding: spacing.sedang,
-        borderRadius: 8,
-        backgroundColor: "#F4F7FA",
-      }}
-    >
-      <Text style={{ fontWeight: "bold", fontSize: typeScale.judul }}>
-        {kota}
-      </Text>
-      <Text style={{ fontSize: 32 }}>{suhu}°C</Text>
-      <Text style={{ color: warnaAQI, fontSize: typeScale.isi }}>
-        AQI:
-        {tingkatAQI}
-      </Text>
+        accessible
+        accessibilityLabel={`Cuaca ${kota}, suhu ${suhu} derajat, kualitas udara
+        ${tingkatAQI}`}
+        style={{ padding: spacing.sedang, borderRadius: 8, backgroundColor: "#F4F7FA" }}
+        >
+        {/* isi WeatherCard tetap seperti sebelumnya */}
+        <Text style={{ fontWeight: "bold", fontSize: typeScale.judul }}>
+            {kota}
+        </Text>
+        <Text style={{ fontSize: 32 }}>{suhu}°C</Text>
+        <Text style={{ color: warnaAQI, fontSize: typeScale.isi }}>
+            AQI:
+            {tingkatAQI}
+        </Text>
     </View>
   );
 }
