@@ -14,7 +14,8 @@ export default function HalamanUtama() {
   const [sedangMemuat, setSedangMemuat] = useState(false);
   const [pesanError, setPesanError] = useState<string | null>(null);
 
-  const teksTertunda = useDebounce(teksCari, 500);
+  // Latihan Mandiri #2: Ubah delay debounce menjadi 800ms
+  const teksTertunda = useDebounce(teksCari, 800);
 
   useEffect(() => {
     if (teksTertunda.trim().length === 0) {
@@ -46,15 +47,26 @@ export default function HalamanUtama() {
 
       {sedangMemuat && <ActivityIndicator />}
 
+      {/* Latihan Mandiri #3: Accessibility Label pada Pesan Error */}
       {pesanError && (
-        <View>
+        <View accessibilityLabel="Pesan kesalahan jaringan atau data">
           <Text>{pesanError}</Text>
           <Button title="Coba Lagi" onPress={() => ambilData(teksTertunda)} />
         </View>
       )}
 
+      {/* Latihan Mandiri #3: Accessibility Label pada Pesan Kosong */}
       {!sedangMemuat && !pesanError && teksTertunda.length > 0 && hasil.length === 0 && (
-        <Text>Kota tidak ditemukan</Text>
+        <Text accessibilityLabel="Hasil pencarian tidak ditemukan">
+          Kota tidak ditemukan
+        </Text>
+      )}
+
+      {/* Latihan Mandiri #1: Indikator Jumlah Hasil */}
+      {!sedangMemuat && !pesanError && hasil.length > 0 && (
+        <Text style={{ fontWeight: "bold" }}>
+          Ditemukan {hasil.length} kota
+        </Text>
       )}
 
       {!sedangMemuat &&
