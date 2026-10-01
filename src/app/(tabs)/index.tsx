@@ -79,12 +79,24 @@ export default function HalamanUtama() {
       )}
 
       {cuaca && kualitasUdara && kotaTerpilih && !sedangMemuat && (
-        <WeatherCard
-          kota={kotaTerpilih.name}
-          suhu={cuaca.saatIni.suhu}
-          tingkatAQI={konversiTingkatAQI(kualitasUdara.indeksAQI)}
-          indeksAQI={kualitasUdara.indeksAQI}
-        />
+        <>
+          <WeatherCard
+            kota={kotaTerpilih.name}
+            suhu={cuaca.saatIni.suhu}
+            tingkatAQI={konversiTingkatAQI(kualitasUdara.indeksAQI)}
+            indeksAQI={kualitasUdara.indeksAQI}
+          />
+
+          {/* Latihan Mandiri 1: Suhu Maksimal / Minimal Harian Hari Ini */}
+          <Text style={{ fontSize: 14, color: "#444" }}>
+            Suhu Harian: Maks {cuaca.harian.suhuMaksimal[0]}°C / Min {cuaca.harian.suhuMinimal[0]}°C
+          </Text>
+
+          {/* Latihan Mandiri 2: Tampilkan PM2.5 dan PM10 */}
+          <Text style={{ fontSize: 11, color: "#666", textAlign: "center" }}>
+            Partikel Udara: PM2.5 ({kualitasUdara.pm25} µg/m³) | PM10 ({kualitasUdara.pm10} µg/m³)
+          </Text>
+        </>
       )}
 
       {cuaca && (
