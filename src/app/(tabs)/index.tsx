@@ -14,6 +14,7 @@ import { konversiTingkatAQI } from "../../services/weatherAdapter";
 import { labelKodeCuaca } from "../../constants/weatherCodes";
 import { HasilGeocoding } from "../../types/geocoding";
 import { DataCuacaLengkap, DataKualitasUdara } from "../../types/weather";
+import { router } from "expo-router";
 
 export default function HalamanUtama() {
   const [pesanLokasi, setPesanLokasi] = useState<string | null>(null);
@@ -124,6 +125,20 @@ export default function HalamanUtama() {
           <Text style={{ fontSize: 11, color: "#666", textAlign: "center" }}>
             Partikel Udara: PM2.5 ({kualitasUdara.pm25} µg/m³) | PM10 ({kualitasUdara.pm10} µg/m³)
           </Text>
+          <Button
+            title="Tambahkan ke Favorit"
+            onPress={() =>
+              router.push({
+                pathname: "/tambah-favorit",
+                params: {
+                  id: String(kotaTerpilih.id),
+                  nama: kotaTerpilih.name,
+                  lat: String(kotaTerpilih.latitude),
+                  lon: String(kotaTerpilih.longitude),
+                },
+              })
+            }
+          />
         </>
       )}
 
