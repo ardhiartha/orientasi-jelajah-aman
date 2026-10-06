@@ -15,6 +15,7 @@ import { labelKodeCuaca } from "../../constants/weatherCodes";
 import { HasilGeocoding } from "../../types/geocoding";
 import { DataCuacaLengkap, DataKualitasUdara } from "../../types/weather";
 import { router } from "expo-router";
+import { ambilSemuaFavorit } from "../../services/favoritStorage";
 
 export default function HalamanUtama() {
   const [pesanLokasi, setPesanLokasi] = useState<string | null>(null);
@@ -25,6 +26,18 @@ export default function HalamanUtama() {
   const [kualitasUdara, setKualitasUdara] = useState<DataKualitasUdara | null>(null);
   const [sedangMemuat, setSedangMemuat] = useState(false);
   const [pesanError, setPesanError] = useState<string | null>(null);
+
+  // State & Effect Cek Duplikat Favorit
+  const [isFavorit, setIsFavorit] = useState(false);
+
+  useEffect(() => {
+    if (kotaTerpilih) {
+      ambilSemuaFavorit().then((daftar) => {
+        const ada = daftar.some((k) => k.id === kotaTerpilih.id);
+        setIsFavorit(ada);
+      });
+    }
+  }, [kotaTerpilih]);
 
   const teksTertunda = useDebounce(teksCari, 500);
   const requestIdRef = useRef(0); // pencegah race condition
@@ -61,26 +74,26 @@ export default function HalamanUtama() {
   }
 
   async function gunakanLokasiSaatIni() {
-     const status = await mintaIzinLokasi();
+    const status = await mintaIzinLokasi();
 
-     if (status === "denied") {
-       setPesanLokasi("Izin lokasi ditolak. Silakan cari kota secara manual di atas.");
-       return;
+    if (status === "denied") {
+      setPesanLokasi("Izin lokasi ditolak. Silakan cari kota secara manual di atas.");
+      return;
     }
 
-     if (status === "unavailable") {
-       setPesanLokasi("Layanan lokasi tidak aktif di perangkat ini. Silakan cari kota secara manual.");
-       return;
+    if (status === "unavailable") {
+      setPesanLokasi("Layanan lokasi tidak aktif di perangkat ini. Silakan cari kota secara manual.");
+      return;
     }
 
-     setPesanLokasi(null);
-     const koordinat = await ambilKoordinatSaatIni();
-     pilihKota({
-       id: -1,
-       name: "Lokasi Saat Ini",
-       latitude: koordinat.latitude,
-       longitude: koordinat.longitude,
-       country: "",
+    setPesanLokasi(null);
+    const koordinat = await ambilKoordinatSaatIni();
+    pilihKota({
+      id: -1,
+      name: "Lokasi Saat Ini",
+      latitude: koordinat.latitude,
+      longitude: koordinat.longitude,
+      country: "",
     });
   }
 
@@ -125,20 +138,23 @@ export default function HalamanUtama() {
           <Text style={{ fontSize: 11, color: "#666", textAlign: "center" }}>
             Partikel Udara: PM2.5 ({kualitasUdara.pm25} µg/m³) | PM10 ({kualitasUdara.pm10} µg/m³)
           </Text>
-          <Button
-            title="Tambahkan ke Favorit"
-            onPress={() =>
-              router.push({
-                pathname: "/tambah-favorit",
-                params: {
-                  id: String(kotaTerpilih.id),
-                  nama: kotaTerpilih.name,
-                  lat: String(kotaTerpilih.latitude),
-                  lon: String(kotaTerpilih.longitude),
-                },
-              })
-            }
-          />
+
+          {!isFavorit && (
+            <Button
+              title="Tambahkan ke Favorit"
+              onPress={() =>
+                router.push({
+                  pathname: "/tambah-favorit",
+                  params: {
+                    id: String(kotaTerpilih.id),
+                    nama: kotaTerpilih.name,
+                    lat: String(kotaTerpilih.latitude),
+                    lon: String(kotaTerpilih.longitude),
+                  },
+                })
+              }
+            />
+          )}
         </>
       )}
 
