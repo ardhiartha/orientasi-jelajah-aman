@@ -1,0 +1,54 @@
+
+import { ambilCuaca } from "./weatherService";
+import { ambilKualitasUdara } from "./airQualityService";
+import { ambilCache, simpanCache } from "./cacheRepository";
+import { HasilCuacaOffline, KotaUntukCache } from "../types/cache";
+
+export const TTL_SEGAR_MS = 30 * 60 * 1000; // 30 menit
+export const BATAS_CACHE_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari
+
+interface OpsiAmbil {
+  paksaPerbarui?: boolean;
+}
+
+export async function ambilCuacaOfflineFirst(
+  kota: KotaUntukCache,
+  opsi: OpsiAmbil = {}
+): Promise<HasilCuacaOffline> {
+  const cache = await ambilCache(kota.latitude, kota.longitude);
+  const umur = cache ? Date.now() - cache.disimpanPada : Infinity;
+
+  // 1. Cache masih segar: gunakan langsung tanpa memanggil internet
+  if (cache && umur < TTL_SEGAR_MS && !opsi.paksaPerbarui) {
+    return { ...cache, sumber: "cache-segar" };
+  }
+
+  // 2. Coba ambil data dari internet
+  const dariJaringan = await Promise.all([
+    ambilCuaca(kota.latitude, kota.longitude),
+    ambilKualitasUdara(kota.latitude, kota.longitude),
+  ]).catch(() => null);
+
+  // 3. Internet gagal: gunakan cache lama jika tersedia
+  if (!dariJaringan) {
+    if (cache) return { ...cache, sumber: "cache-basi" };
+
+    throw new Error("Tidak ada koneksi dan belum ada data tersimpan");
+  }
+
+  // 4. Internet berhasil: simpan data terbaru ke cache
+  const [cuaca, kualitasUdara] = dariJaringan;
+
+  try {
+    await simpanCache(kota, cuaca, kualitasUdara);
+  } catch {
+    // Kegagalan menyimpan cache tidak boleh merusak tampilan data
+  }
+
+  return {
+    cuaca,
+    kualitasUdara,
+    disimpanPada: Date.now(),
+    sumber: "jaringan",
+  };
+}
