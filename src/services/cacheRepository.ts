@@ -1,11 +1,10 @@
-
 import { ambilDatabase } from "../db/database";
-import { DataCuacaLengkap, DataKualitasUdara } from "../types/weather";
 import {
   DataTersimpan,
   KotaUntukCache,
   RingkasanKotaTersimpan,
 } from "../types/cache";
+import { DataCuacaLengkap, DataKualitasUdara } from "../types/weather";
 
 interface BarisCache {
   kunci: string;
@@ -29,7 +28,7 @@ export function buatKunci(latitude: number, longitude: number): string {
 export async function simpanCache(
   kota: KotaUntukCache,
   cuaca: DataCuacaLengkap,
-  kualitasUdara: DataKualitasUdara
+  kualitasUdara: DataKualitasUdara,
 ): Promise<void> {
   const db = await ambilDatabase();
 
@@ -46,19 +45,19 @@ export async function simpanCache(
       JSON.stringify(cuaca),
       JSON.stringify(kualitasUdara),
       Date.now(),
-    ]
+    ],
   );
 }
 
 export async function ambilCache(
   latitude: number,
-  longitude: number
+  longitude: number,
 ): Promise<DataTersimpan | null> {
   const db = await ambilDatabase();
 
   const baris = await db.getFirstAsync<BarisCache>(
     "SELECT * FROM cache_cuaca WHERE kunci = ?",
-    [buatKunci(latitude, longitude)]
+    [buatKunci(latitude, longitude)],
   );
 
   if (!baris) return null;
@@ -70,14 +69,12 @@ export async function ambilCache(
   };
 }
 
-export async function daftarKotaTersimpan(): Promise<
-  RingkasanKotaTersimpan[]
-> {
+export async function daftarKotaTersimpan(): Promise<RingkasanKotaTersimpan[]> {
   const db = await ambilDatabase();
 
   const semua = await db.getAllAsync<BarisRingkasan>(
     `SELECT kunci, kota_id, nama_kota, latitude, longitude, disimpan_pada
-     FROM cache_cuaca ORDER BY disimpan_pada DESC LIMIT 5`
+     FROM cache_cuaca ORDER BY disimpan_pada DESC LIMIT 5`,
   );
 
   return semua.map((b) => ({
@@ -91,19 +88,24 @@ export async function daftarKotaTersimpan(): Promise<
 }
 
 // Hapus cache yang lebih tua dari batas umur
-export async function bersihkanCacheLama(
-  batasUmurMs: number
-): Promise<void> {
+export async function bersihkanCacheLama(batasUmurMs: number): Promise<void> {
   const db = await ambilDatabase();
 
-  await db.runAsync(
-    "DELETE FROM cache_cuaca WHERE disimpan_pada < ?",
-    [Date.now() - batasUmurMs]
-  );
+  await db.runAsync("DELETE FROM cache_cuaca WHERE disimpan_pada < ?", [
+    Date.now() - batasUmurMs,
+  ]);
 }
 
 // Kosongkan seluruh cache secara manual
 export async function hapusSemuaCache(): Promise<void> {
   const db = await ambilDatabase();
   await db.runAsync("DELETE FROM cache_cuaca");
+}
+
+// Hapus cache cuaca untuk satu kota berdasarkan kunci cache.
+// Riwayat pencarian dan kota favorit tidak ikut terhapus.
+export async function hapusCacheKota(kunci: string): Promise<void> {
+  const db = await ambilDatabase();
+
+  await db.runAsync("DELETE FROM cache_cuaca WHERE kunci = ?", [kunci]);
 }
